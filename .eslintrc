@@ -1,0 +1,26 @@
+{
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+      "@typescript-eslint"
+    ],
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/eslint-recommended",
+      "plugin:@typescript-eslint/recommended"
+    ],
+    "env": {
+        "node": true,
+        "commonjs": true,
+        "es6": true,
+        "jest/globals": true
+    },
+    "ignorePatterns": [
+        "node_modules",
+        "dist",
+        ".eslintrc.js"
+    ],
+    "rules": {
+        "object-shorthand": "error",
+    }
+  }
