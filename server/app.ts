@@ -1,18 +1,16 @@
-import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import PlayerController from "./controllers/PlayerController";
 import { Server } from "socket.io";
 import Player from "./lib/Player";
 import RoomController from "./controllers/RoomController";
+import { InfoMessage } from "./messages";
 
 class App {
-  io: any;
+  io: Server;
   dict: Map<any, any>;
   PlayerController: PlayerController;
   RoomController: RoomController;
 
-  constructor(
-    socketIO: Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>
-  ) {
+  constructor(socketIO: Server) {
     this.io = socketIO;
     this.dict = new Map();
     this.PlayerController = new PlayerController();
@@ -45,14 +43,11 @@ class App {
     this.dict.set(playerXSocketID, roomID);
     this.dict.set(playerOSocketID, roomID);
 
-    this.io
-      .to(playerXSocketID)
-      .emit("info", "Game started, you are the player X");
-    this.io
-      .to(playerOSocketID)
-      .emit("info", "Game started, you are the player O");
+    this.io.to(playerXSocketID).emit("info", InfoMessage.GameStartedForPlayerX);
+    this.io.to(playerOSocketID).emit("info", InfoMessage.GameStartedForPlayerO);
 
-    console.log("Game Starting with number", newGame.progress);
+    console.log(`Game is starting with number: ${newGame.progress}`);
+
     this.io.to(playerXSocketID).emit("progress", newGame.progress);
   }
 
@@ -64,11 +59,11 @@ class App {
 
       this.match(players);
     } else {
-      socket.emit("info", "Waiting for the other player...");
+      socket.emit("info", InfoMessage.WaitForOthers);
     }
   }
 
-  handleMove(socket: any, message: any) {
+  handleMove(socket: any, message: number) {
     const roomID = this.dict.get(socket.id);
     const game = this.RoomController.getRoom(roomID);
     const currentPlayer = game.participants[socket.id];
@@ -79,17 +74,19 @@ class App {
       const numberAfterMove = game.makeMove(message);
 
       if (numberAfterMove === 1) {
-        socket.broadcast.to(roomID).emit("over", "Game is over");
-        socket.emit("info", "YOU WIN");
-        socket.broadcast.to(roomID).emit("over", "You Lost");
+        this.io.in(roomID).emit("over", InfoMessage.GameOver);
+
+        socket.emit("over", InfoMessage.Victory);
+        socket.to(roomID).emit("over", InfoMessage.Lose);
       } else {
-        console.log(`${currentPlayer} made move ${message}`);
+        console.log(`Player ${currentPlayer} sent ---> ${message}`);
+
         game.turn();
-        console.log(game.process);
+
         socket.to(roomID).emit("progress", game.progress);
       }
     } else {
-      socket.to().emit("info", "It's not your turn");
+      socket.to().emit("info", InfoMessage.WrongPlayer);
     }
   }
 
@@ -99,7 +96,7 @@ class App {
     this.dict.delete(socketID);
     this.PlayerController.remove(socketID);
 
-    this.io.to(roomID).emit("info", "The other player has disconnected");
+    this.io.to(roomID).emit("info", InfoMessage.Disconnected);
   }
 }
 

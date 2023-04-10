@@ -13,17 +13,18 @@ io.on("connection", (socket) => {
   console.info(`New user connected to the server: ${socket.id}`);
 
   socket.on("enter", () => {
-    console.info(`${socket.id} has entered.`);
     app.handleEnter(socket);
   });
 
   socket.on("move", (move) => {
     console.info(`${socket.id} has made move.`);
+
     app.handleMove(socket, move);
   });
 
   socket.on("disconnect", () => {
     console.info(`${socket.id} is disconnected.`);
+
     app.handleDisconnect(socket.id);
   });
 });

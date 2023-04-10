@@ -1,5 +1,3 @@
-import Player from "./Player";
-
 class Game {
   gameID: string;
   _turn: string;

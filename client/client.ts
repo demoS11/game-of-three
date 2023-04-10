@@ -1,28 +1,33 @@
 import io from "socket.io-client";
 import readline from "readline";
+import { ClientMessage } from "./messages";
 
 const socket = io("http://localhost:3000");
 
 socket.on("connect", () => {
-  console.log("Welcome Player", socket.id);
+  console.log(`${ClientMessage.Welcome} ${socket.id}`);
+  console.log(ClientMessage.Intro);
+  console.log(ClientMessage.Divider);
 
   socket.emit("enter", socket.id);
 });
 
 socket.on("progress", (msg) => {
-  console.log(`The number is ${msg}`);
-  console.log(`Make your move, choose 1, 0 or -1`);
+  console.log(ClientMessage.Divider);
+  console.log(`${ClientMessage.GameNumber} ${msg}`);
+  console.log(ClientMessage.MakeYourMove);
+
   switch (msg % 3) {
     case 0:
-      console.log(`Move is 0`);
+      console.log(`${ClientMessage.YourMove} 0`);
       socket.emit("move", 0);
       break;
     case 1:
-      console.log(`Move is -1`);
+      console.log(`${ClientMessage.YourMove} -1`);
       socket.emit("move", -1);
       break;
     case 2:
-      console.log(`Move is 1`);
+      console.log(`${ClientMessage.YourMove} 1`);
       socket.emit("move", 1);
       break;
     default:
@@ -41,7 +46,6 @@ socket.on("info", (msg) => {
 });
 
 socket.on("disconnect", () => {
-  console.log("Disconnected");
   process.exit();
 });
 
